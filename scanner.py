@@ -1,19 +1,30 @@
 import subprocess
 import platform
 import re
+import sqlite3
 
 def main(proploss):
+
+
+    conn = sqlite3.connect('ntwks.db')
+    c = conn.cursor()
+
+    # Create table if it does not already exist
+    c.execute('''CREATE TABLE IF NOT EXISTS networks
+    					(ssid text, bssid text, rssi real, distance real)''')
+
+    conn.commit()
 
     results = subprocess.check_output(["netsh", "wlan", "show", "network", "mode=Bssid"])
     results = results.decode("ascii")
     results = results.replace("\r", "")
     ls = results.split("\n")
-    ls = ls[4:]# remove stuff at start of string
-    
+    ls = ls[4:]
+    # remove stuff at start of string
+
     # extract required values SSID, BSSID and RSSI
-    values = ["SSID", "Signal"]# SSID returns SSID and BSSID, signal is used for RSSI
+    values = ["SSID", "Signal"]
     new = [s for s in ls if any(xs in s for xs in values)]
-    
 
     # replace BSSID with MAC
     new = [w.replace('BSSID', 'MAC') for w in new]
@@ -64,11 +75,11 @@ def main(proploss):
 
     ## rssi to distance calculation
     distance = []
-    #n = 20
+    #n = 22
     # distance = 10^((Txpower-RSSI)/10n)
     # Txpower = rssi at 1m assumed to be -54 aprox 99%
     # rssi = the recieved rssi value
-    # n = signal propigation loss, higher value for indoors max 40, lower value for outside lowest 20
+    # n = signal propigation loss, higher value for indoors max 44, lower value for outside lowest 20
     for i in dbm:
         d = 10 ** ((-54 - (i)) / proploss)
         distance.append(d)
@@ -76,4 +87,14 @@ def main(proploss):
     print(['%.2f' % d for d in distance])  # 2dp for metres
 
 
-#main(20)
+    tup = tuple(zip(ssid, mac, rssi, distance))
+    print(tup)
+
+    for t in tup:
+        c.execute("INSERT INTO networks VALUES (?, ?, ?, ?)", t)
+    conn.commit()
+    conn.close
+
+
+
+main(20)
