@@ -11,7 +11,7 @@ def main(proploss):
 
     # Create table if it does not already exist
     c.execute('''CREATE TABLE IF NOT EXISTS networks
-    					(ssid text, bssid text, rssi real, distance real)''')
+    					(ssid text, bssid text, rssi real, distance real, proploss text)''')
 
     conn.commit()
 
@@ -90,11 +90,22 @@ def main(proploss):
     tup = tuple(zip(ssid, mac, rssi, distance))
     print(tup)
 
-    for t in tup:
-        c.execute("INSERT INTO networks VALUES (?, ?, ?, ?)", t)
+    if (proploss == 20):
+        ploss = "Outdoors"
+    elif (proploss == 30):
+        ploss = "Indoors"
+    else:
+        ploss = "Built up area"
+
+
+
+    newl = [xs + (ploss,) for xs in tup]
+    print(newl)
+
+    for t in newl:
+        c.execute("INSERT OR REPLACE INTO networks VALUES (?, ?, ?, ?, ?)", t)
     conn.commit()
     conn.close
 
 
 
-main(20)
