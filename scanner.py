@@ -1,5 +1,5 @@
 import subprocess
-import platform
+import platform #finding OS
 import re
 import sqlite3
 
@@ -48,7 +48,7 @@ def main(proploss):
 
     values = ["Signal"]
     signal = [s for s in networks if any(xs in s for xs in values)]
-    # print(signal) convert singal percent ro rssi values.
+    # print(signal) convert signal percent ro rssi values.
 
     # remove percent sign to the values can be manipluated
     rssi = []
@@ -86,9 +86,12 @@ def main(proploss):
 
     print(['%.2f' % d for d in distance])  # 2dp for metres
 
+    ssid = [s[6:] for s in ssid] #remove SSID: from start of list
+    mac = [s[5:] for s in mac] #remove MAC: from start of list
+
 
     tup = tuple(zip(ssid, mac, rssi, distance))
-    print(tup)
+    #print(tup)
 
     if (proploss == 20):
         ploss = "Outdoors"
@@ -100,7 +103,7 @@ def main(proploss):
 
 
     newl = [xs + (ploss,) for xs in tup]
-    print(newl)
+    #print(newl)
 
     for t in newl:
         c.execute("INSERT OR REPLACE INTO networks VALUES (?, ?, ?, ?, ?)", t)
