@@ -1,8 +1,9 @@
 from tkinter import *
+from tkinter import scrolledtext
 from scanner import main
 
 
-class GUI:
+class Butts:
 
     def __init__(self, master):
 
@@ -10,7 +11,9 @@ class GUI:
         frame = Frame(master)
         frame.grid()
 
-        self.tb = Text(frame)
+       # self.tb = Text(frame)
+        self.tb = scrolledtext.ScrolledText(frame, width=40, height=10)
+
         self.tb.grid(row=0, columnspan=3)
 
 
@@ -20,7 +23,7 @@ class GUI:
         self.quitbut.grid(row=1, column =2)
 
         var = StringVar(master)
-        var.set("Outdoors")
+        var.set("environment")
 
         self.envmenu = OptionMenu(frame, var, "Outdoors", "Indoors", "Built up area", command=self.val)
         self.envmenu.grid(row=2, column=2)
@@ -38,9 +41,13 @@ class GUI:
             n = 40
 
     def scan(self):
-        pass
-        main(n)
-
+            try:
+                if n is None:  # The variable
+                    print('It is None')
+            except NameError:
+                print("This variable is not defined")
+            else:
+                main(n)
 
 root = Tk()
 root.title("Drone Detection")
@@ -48,6 +55,6 @@ root.geometry("650x500")
 
 
 
-b = GUI(root)
+b = Butts(root)
 
 root.mainloop()
