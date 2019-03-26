@@ -1,31 +1,34 @@
 from scapy.all import sniff, wrpcap, hexdump, rdpcap
 import re
 import sys
-#from  read import rd
+
+#################################packet capture ############################
 
 
-#pkts_list = sniff(count = 5, monitor=False)#set monitor=True
+pkts_list = sniff(count = 10, monitor=False)#set monitor=True #count = > 10 for greater sample
 
-#pkts_list.show()
-#hexdump(pkts_list)
-#wrpcap('scapytest.pcap',pkts_list )
+wrpcap('scapytest.pcap',pkts_list )
 
-#for i in pkts_list:
-#	hexdump(i)
+sys.stdout = open('textout.txt', 'w+')
+for i in pkts_list:
+	hexdump(i)
+sys.stdout.close()
 
-packets = rdpcap('captured.pcapng')
+######################################packets on saved scan###################
+
+#packets = rdpcap('captured.pcapng')
 
 #print output from hexdump into txt file
-sys.stdout = open('textout.txt', 'w+')
+#sys.stdout = open('textout.txt', 'w+')
 
-for i in packets:
-	hexdump(i)	
+#for i in packets:
+#	hexdump(i)	
 	
 #
 #files = open("textout.txt", "r+")
 #contents = files.read()
 #files.close()   
-sys.stdout.close()
+#sys.stdout.close()
 
 #PCMD_MAG
 	
