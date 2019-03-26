@@ -2,6 +2,8 @@ import subprocess
 import platform #finding OS
 import re
 import sqlite3
+from time import ctime
+
 
 def main(proploss):
 
@@ -11,7 +13,7 @@ def main(proploss):
 
     # Create table if it does not already exist
     c.execute('''CREATE TABLE IF NOT EXISTS networks
-    					(ssid text, bssid text, rssi real, distance real, proploss text)''')
+    					(ssid text, bssid text, rssi real, distance real, proploss text, time text)''')
 
     conn.commit()
 
@@ -100,13 +102,14 @@ def main(proploss):
     else:
         ploss = "Built up area"
 
+    curDT = ctime()
+    newl = [xs + (ploss, curDT, ) for xs in tup]
+    print(newl)
 
 
-    newl = [xs + (ploss,) for xs in tup]
-    #print(newl)
 
     for t in newl:
-        c.execute("INSERT OR REPLACE INTO networks VALUES (?, ?, ?, ?, ?)", t)
+        c.execute("INSERT OR REPLACE INTO networks VALUES (?, ?, ?, ?, ?, ?)", t)
     conn.commit()
     conn.close
 
