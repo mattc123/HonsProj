@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#title           :fin.py
+#title           :finv2.py
 #description     :Honours project. drone detection though SSID detection and packet analysing.
 #author          :Matthew Christie
 #matriculation: 1304093
@@ -41,7 +41,7 @@ class Interface:
 		self.tb1.grid(row=3, columnspan=5)
 		
 			
-		#scroll buttons
+		#buttons
 		self.printbutton = Button(frame, text="Quit", command=frame.quit)
 		self.printbutton.grid(row=1, column = 3)
 
@@ -86,26 +86,32 @@ class Interface:
 	def scan (self):
 	#function to find wireless networks and display them
 	
-	
+		#clears the text box
+		self.tb.delete(1.0,END)
 		count = 1
-		while count < 10:
-	
-			try:
-				if n is None:
-					print('It is None')
-			except NameError:
-				messagebox.showinfo("Error", "Please select an environment")
-			else:
+		
+		try:
+			if n is None:
+				print('It is None')
+		except NameError:
+			messagebox.showinfo("Error", "Please select an environment")
+		else:
+		
 
-				#create database to store network information
-				conn = sqlite3.connect('ntwks.db')
-				c = conn.cursor()
 
-				# Create table if it does not already exist
-				c.execute('''CREATE TABLE IF NOT EXISTS networks
-									(ssid text, bssid text, rssi real, distance real, proploss text, time text)''')
+			#create database to store network information
+			conn = sqlite3.connect('ntwks.db')
+			c = conn.cursor()
 
-				conn.commit()
+			# Create table if it does not already exist
+			c.execute('''CREATE TABLE IF NOT EXISTS networks
+								(ssid text, bssid text, rssi real, distance real, proploss text, time text)''')
+
+			conn.commit()
+				
+			#loops though 10 times to gather good sample of SSIDs
+			while count < 10:
+				
 
 				# gets output from running "netsh wlan show network mode=Bssid" in command line
 				# only works in windows
@@ -115,7 +121,7 @@ class Interface:
 				results = results.replace("\r", "")
 				ls = results.split("\n") 
 				ls = ls[4:]
-				
+					
 
 				# extract required values SSID, BSSID and RSSI
 				values = ["SSID", "Signal"]
@@ -129,15 +135,15 @@ class Interface:
 				for i in new:
 					j = i.replace(' ', '')
 					networks.append(j)
-					
+						
 				#find all SSID values 
 				values = ["SSID"]
 				ssid = [s for s in networks if any(xs in s for xs in values)]
-				
+					
 				#find all MAC values 
 				values = ["MAC"]
 				mac = [s for s in networks if any(xs in s for xs in values)]
-				
+					
 				#find all Signal values
 				values = ["Signal"]
 				signal = [s for s in networks if any(xs in s for xs in values)]
@@ -194,10 +200,10 @@ class Interface:
 
 				#get the time of the current scan	
 				curDT = ctime()
-				
+					
 				#create a new list of tuples with signal loss and time to be stored in database
 				newl = [xs + (ploss, curDT,) for xs in tup]
-	
+		
 
 				#for every item in tuple store it in the databse
 				for t in newl:
@@ -205,44 +211,47 @@ class Interface:
 					c.execute("INSERT OR REPLACE INTO networks VALUES (?, ?, ?, ?, ?, ?)", t)
 				conn.commit()
 				conn.close
-				
-				
-			#print item from old tuple in listbox (without time and signal loss)
-			for newlist in tup:
-				self.tb.insert(INSERT, newlist )
+					
+					
+
+				for newlist in tup:
+					#print item in listbox
+					self.tb.insert(INSERT, newlist )
+					self.tb.insert(INSERT, '\n' )
+
+				#seperate each iteration
 				self.tb.insert(INSERT, '\n' )
+				count += 1
+
+							
+				#ssid list is converted to string
+				potential_drones = ''.join(ssid)
+				
+				#list of potential drone ssids, with wildcards as exact match is unlikly
+				hazards = ["drone.*", "ar.*", "parrot.*"] 
+				combined = "(" + ")|(".join(hazards) + ")"
 			
-			count += 1
-			
-						
-		#ssid list is converted to string
-		potential_drones = ''.join(ssid)
-			
-		#list of potential drone ssids, with wildcards as exact match is unlikly
-		hazards = ["drone.*", "ar.*", "parrot.*"] 
-		combined = "(" + ")|(".join(hazards) + ")"
-		
-		#check if wildcards appear in ssid list
-		matched = re.match(combined, potential_drones)
-		if matched:
-			#convert to string
-			match = str(matched)
-			#remove irrelevent data at start and end of string
-			match = match[32:-1]
-			
-			#print in scroll box to user
-			self.tb1.insert(INSERT, match)
-			self.tb1.insert(INSERT, '\n' )
-			
-			#display an alert
-			messagebox.showwarning("Warning", "Potential Drone Presence Detected")
+				#check if wildcards appear in ssid list
+				matched = re.match(combined, potential_drones)
+				if matched:
+					#convert to string
+					match = str(matched)
+					#remove irrelevent data at start and end of string
+					match = match[32:-1]
+					
+					#print in scroll box to user
+					self.tb1.insert(INSERT, match)
+					self.tb1.insert(INSERT, '\n' )
+					
+					#display an alert
+					messagebox.showwarning("Warning", "Potential Drone Presence Detected")
 				
 			
 	def pcktscn(self):
 	#function to capture communication packets between drone and pilot and analyise them
 
 		#sniff incoming packets
-		pkts_list = sniff(count=10, monitor=False)  # set monitor=True #count = > 10 for greater sample
+		pkts_list = sniff(count=50, monitor=False)  # set monitor=True #count = > 10 for greater sample
 
 		#save as pcap for future analysis
 		wrpcap('scapytest.pcap', pkts_list)
@@ -288,8 +297,6 @@ class Interface:
 root = Tk()
 root.title("Drone Detection")
 root.geometry("650x500")
-
-
 
 b = Interface(root)
 
