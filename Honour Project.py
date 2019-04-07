@@ -213,45 +213,48 @@ class Interface:
 				conn.close
 					
 					
-
-				for newlist in tup:
-					#print item in listbox
-					self.tb.insert(INSERT, newlist )
-					self.tb.insert(INSERT, '\n' )
-
-				#seperate each iteration
-				self.tb.insert(INSERT, '\n' )
 				count += 1
+			for newlist in tup:
+					#print item in listbox
+				self.tb.insert(INSERT, newlist )
+				self.tb.insert(INSERT, '\n' )
+
+			#seperate each iteration
+			self.tb.insert(INSERT, '\n' )
 
 							
 				#ssid list is converted to string
-				potential_drones = ''.join(ssid)
+			potential_drones = ''.join(ssid)
 				
 				#list of potential drone ssids, with wildcards as exact match is unlikly
-				hazards = ["drone.*", "ar.*", "parrot.*"] 
-				combined = "(" + ")|(".join(hazards) + ")"
+			hazards = ["drone.*", "ar.*", "parrot.*"] 
+			combined = "(" + ")|(".join(hazards) + ")"
 			
 				#check if wildcards appear in ssid list
-				matched = re.match(combined, potential_drones)
-				if matched:
+			matched = re.match(combined, potential_drones)
+				
+			if matched:
 					#convert to string
-					match = str(matched)
+				match = str(matched)
 					#remove irrelevent data at start and end of string
-					match = match[32:-1]
+				match = match[32:-1]
 					
 					#print in scroll box to user
-					self.tb1.insert(INSERT, match)
-					self.tb1.insert(INSERT, '\n' )
+				self.tb1.insert(INSERT, match)
+				self.tb1.insert(INSERT, '\n' )
 					
-					#display an alert
-					messagebox.showwarning("Warning", "Potential Drone Presence Detected")
+				#display an alert
+				messagebox.showwarning("Warning", "Potential Drone Presence Detected")
+			else:
+				messagebox.showinfo("Warning", "No Drones Detected")
+				
 				
 			
 	def pcktscn(self):
 	#function to capture communication packets between drone and pilot and analyise them
 
 		#sniff incoming packets
-		pkts_list = sniff(count=50, monitor=False)  # set monitor=True #count = > 10 for greater sample
+		pkts_list = sniff(count=50, monitor=False)  # set monitor=True #count  > 50 for greater sample
 
 		#save as pcap for future analysis
 		wrpcap('scapytest.pcap', pkts_list)
