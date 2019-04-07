@@ -178,8 +178,15 @@ class Interface:
 				# rssi = the recieved rssi value
 				# n = signal propigation loss, higher value for indoors max 44, lower value for outside lowest 20
 				for i in dbm:
-					d = 10 ** ((-54 - (i)) / n)
+					d = 10 ** ((-53.6 - (i)) / n)
 					distance.append(d)
+					
+					
+					
+				newdist = []
+				for r in distance:
+					nd = (round(r, 2))  # 2dp for metres
+					newdist.append(nd)	
 					
 				# remove SSID: from start of list
 				ssid = [s[6:] for s in ssid]
@@ -187,7 +194,7 @@ class Interface:
 				mac = [s[5:] for s in mac]
 
 				#create list of tuples as it is easy to manipulate
-				tup = tuple(zip(ssid, mac, rssi, distance))
+				tup = tuple(zip(ssid, mac, rssi, newdist))
 
 				#from 'n' value assiged in val function convert back to text
 				# this is so the data is meaningful in the database
