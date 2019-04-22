@@ -111,7 +111,7 @@ class Interface:
 			conn.commit()
 				
 			#loops though 10 times to gather good sample of SSIDs
-			while count < 2:
+			while count < 10:
 				
 
 				# gets output from running "netsh wlan show network mode=Bssid" in command line
