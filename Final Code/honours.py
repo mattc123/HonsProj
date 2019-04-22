@@ -19,6 +19,7 @@ from time import ctime
 from scapy.all import sniff, wrpcap, hexdump, rdpcap
 import re
 import sys
+import fnmatch
 
 
 
@@ -69,11 +70,11 @@ class Interface:
 
 		global n
 		if (val == "Outdoors"):
-			n = 20
+			n = 22
 		elif (val == "Indoors"):
 			n = 30
 		else:
-			n = 40
+			n = 44
 			
 	
 	def cleartext(self):
@@ -110,7 +111,7 @@ class Interface:
 			conn.commit()
 				
 			#loops though 10 times to gather good sample of SSIDs
-			while count < 10:
+			while count < 2:
 				
 
 				# gets output from running "netsh wlan show network mode=Bssid" in command line
@@ -174,9 +175,10 @@ class Interface:
 				distance = []
 				# n = 22
 				# distance = 10^((Txpower-RSSI)/10n)
-				# Txpower = rssi at 1m assumed to be -54 aprox 99%
+				# Txpower = rssi at 1m 
 				# rssi = the recieved rssi value
-				# n = signal propigation loss, higher value for indoors max 44, lower value for outside lowest 20
+				# n = signal propigation loss, higher value for indoors max 44, lower value for outside lowest 22
+														
 				for i in dbm:
 					d = 10 ** ((-53.6 - (i)) / n)
 					distance.append(d)
@@ -198,7 +200,7 @@ class Interface:
 
 				#from 'n' value assiged in val function convert back to text
 				# this is so the data is meaningful in the database
-				if (n == 20):
+				if (n == 22):
 					ploss = "Outdoors"
 				elif (n == 30):
 					ploss = "Indoors"
@@ -223,7 +225,7 @@ class Interface:
 				count += 1
 			for newlist in tup:
 					#print item in listbox
-				self.tb.insert(INSERT, newlist )
+				self.tb.insert(INSERT, newlist)
 				self.tb.insert(INSERT, '\n' )
 
 			#seperate each iteration
@@ -235,33 +237,24 @@ class Interface:
 				
 				#list of potential drone ssids, with wildcards as exact match is unlikly
 			hazards = ["drone.*", "ar.*", "parrot.*"] 
-			combined = "(" + ")|(".join(hazards) + ")"
 			
-				#check if wildcards appear in ssid list
-			matched = re.match(combined, potential_drones)
-				
-			if matched:
-					#convert to string
-				match = str(matched)
-					#remove irrelevent data at start and end of string
-				match = match[32:-1]
-					
-					#print in scroll box to user
-				self.tb1.insert(INSERT, match)
+			
+			if re.compile('|'.join(hazards),re.IGNORECASE).search(potential_drones): #re.IGNORECASE is used to ignore case
+				self.tb1.insert(INSERT, "Potential Drone Presence Detected")
 				self.tb1.insert(INSERT, '\n' )
-					
-				#display an alert
 				messagebox.showwarning("Warning", "Potential Drone Presence Detected")
 			else:
 				messagebox.showinfo("Warning", "No Drones Detected")
-				
+			
+
+		
 				
 			
 	def pcktscn(self):
 	#function to capture communication packets between drone and pilot and analyise them
 
 		#sniff incoming packets
-		pkts_list = sniff(count=50, monitor=False)  # set monitor=True #count  > 50 for greater sample
+		pkts_list = sniff(timeout=30, monitor=False)  # set monitor=True #count  > 50 for greater sample
 
 		#save as pcap for future analysis
 		wrpcap('scapytest.pcap', pkts_list)
